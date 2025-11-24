@@ -1,0 +1,93 @@
+{
+  "name": "hpc-connector",
+  "displayName": "HPC Connector",
+  "description": "Execute files on HPC cluster via SSH",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:hpc-connector.submitJob",
+    "onCommand:hpc-connector.viewJobs",
+    "onCommand:hpc-connector.configure"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "hpc-connector.submitJob",
+        "title": "HPC: Submit Current File"
+      },
+      {
+        "command": "hpc-connector.viewJobs",
+        "title": "HPC: View Jobs"
+      },
+      {
+        "command": "hpc-connector.configure",
+        "title": "HPC: Configure Connection"
+      }
+    ],
+    "configuration": {
+      "title": "HPC Connector",
+      "properties": {
+        "hpc-connector.clusterHost": {
+          "type": "string",
+          "default": "",
+          "description": "HPC cluster hostname"
+        },
+        "hpc-connector.username": {
+          "type": "string",
+          "default": "",
+          "description": "Your cluster username"
+        },
+        "hpc-connector.sshPort": {
+          "type": "number",
+          "default": 22,
+          "description": "SSH port"
+        },
+        "hpc-connector.pythonEnv": {
+          "type": "string",
+          "default": "base_env",
+          "description": "Default Python virtual environment"
+        },
+        "hpc-connector.defaultPartition": {
+          "type": "string",
+          "default": "l40",
+          "description": "Default SLURM partition"
+        },
+        "hpc-connector.defaultGPUs": {
+          "type": "number",
+          "default": 1,
+          "description": "Default number of GPUs"
+        },
+        "hpc-connector.defaultCPUs": {
+          "type": "number",
+          "default": 4,
+          "description": "Default number of CPUs"
+        },
+        "hpc-connector.defaultMemory": {
+          "type": "string",
+          "default": "16G",
+          "description": "Default memory allocation"
+        },
+        "hpc-connector.defaultTime": {
+          "type": "string",
+          "default": "02:00:00",
+          "description": "Default time limit (HH:MM:SS)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node test/runTest.js"
+  },
+  "dependencies": {
+    "ssh2": "^1.11.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0"
+  }
+}

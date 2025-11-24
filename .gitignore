@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE settings (but preserve .vscode/.hpc-connector for job data)
+.idea/
+*.swp
+*.swo
+
+# Local configuration
+.env
+config.local.js
+
+# Build files
+dist/
+build/
+
+# Test files
+coverage/
+.nyc_output/
+
+# HPC Connector workspace data (stored in .vscode/.hpc-connector/)
+.vscode/.hpc-connector/
+
+# HPC Connector legacy home directory data (for backward compatibility)
+.hpc-connector/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
