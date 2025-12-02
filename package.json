@@ -88,6 +88,7 @@
     "ssh2": "^1.11.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0"
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.7.1"
   }
 }
