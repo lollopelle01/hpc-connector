@@ -2,7 +2,7 @@
 
 A Visual Studio Code extension for submitting and managing computational jobs on SLURM-based HPC clusters via SSH. I implemented it specifically for the cluster of University of Bologna.
 
-**NOTE**: i wrote this documentation with Claude for best clarity.
+**NOTE**: i wrote this documentation with Claude for better clarity.
 
 [![VSCode](https://img.shields.io/badge/VSCode-1.85.0+-blue.svg)](https://code.visualstudio.com/)
 [![Node](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
