@@ -36,14 +36,18 @@ class ConfigManager {
     getClusterInfo() {
         const username = this.get('username');
         
+        // Extract the actual cluster username (before @) if email format
+        const clusterUsername = username.includes('@') ? username.split('@')[0] : username;
+        
         return {
             host: this.get('clusterHost'),
             port: this.get('sshPort', 22),
-            username: username,
+            username: username, // Keep full username for SSH connection
+            clusterUsername: clusterUsername, // Username for paths
             scratchBase: this.SCRATCH_BASE,
-            scratchDir: `${this.SCRATCH_BASE}/${username}`,
-            jobsDir: `${this.SCRATCH_BASE}/${username}/hpc_jobs`,
-            venvsDir: `${this.SCRATCH_BASE}/${username}/python_venvs`,
+            scratchDir: `${this.SCRATCH_BASE}/${clusterUsername}`,
+            jobsDir: `${this.SCRATCH_BASE}/${clusterUsername}/hpc_jobs`,
+            venvsDir: `${this.SCRATCH_BASE}/${clusterUsername}/python_venvs`,
         };
     }
 
