@@ -30,6 +30,22 @@
         "title": "HPC: Configure Connection"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "hpc-connector.submitJob",
+          "when": "resourceExtname == .py || resourceExtname == .ipynb || resourceExtname == .c || resourceExtname == .cpp",
+          "group": "hpc@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "hpc-connector.submitJob",
+          "when": "resourceExtname == .py || resourceExtname == .ipynb || resourceExtname == .c || resourceExtname == .cpp",
+          "group": "hpc@1"
+        }
+      ]
+    },
     "configuration": {
       "title": "HPC Connector",
       "properties": {

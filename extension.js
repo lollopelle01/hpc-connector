@@ -25,8 +25,8 @@ function activate(context) {
 
     logger.info('Managers initialized');
 
-    const submitCommand = vscode.commands.registerCommand('hpc-connector.submitJob', async () => {
-        await submitJob();
+    const submitCommand = vscode.commands.registerCommand('hpc-connector.submitJob', async (uri) => {
+        await submitJob(uri);
     });
 
     const viewJobsCommand = vscode.commands.registerCommand('hpc-connector.viewJobs', async () => {
@@ -43,15 +43,23 @@ function activate(context) {
     vscode.window.showInformationMessage('HPC Connector ready!');
 }
 
-async function submitJob() {
+async function submitJob(uri) {
     try {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            uiManager.showError('No file is currently open');
-            return;
+        // Get file path from URI (context menu) or active editor
+        let filePath;
+        
+        if (uri) {
+            // Called from context menu (right-click)
+            filePath = uri.fsPath;
+        } else {
+            // Called from command palette or keyboard shortcut
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                uiManager.showError('No file is currently open');
+                return;
+            }
+            filePath = editor.document.uri.fsPath;
         }
-
-        const filePath = editor.document.uri.fsPath;
         const fileName = path.basename(filePath);
         const fileExt = path.extname(filePath);
 

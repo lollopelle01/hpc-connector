@@ -37,3 +37,10 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# Test scripts (personal)
+test_*.py
+test_*.ipynb
+
+# Extension package
+*.vsix
