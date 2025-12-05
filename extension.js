@@ -63,8 +63,10 @@ async function submitJob(uri) {
         const fileName = path.basename(filePath);
         const fileExt = path.extname(filePath);
 
-        const supportedExtensions = ['.py', '.ipynb', '.c', '.cpp'];
-        if (!supportedExtensions.includes(fileExt)) {
+        const supportedExtensions = ['.py', '.ipynb', '.c', '.cpp', '.cu'];
+        const supportedFileNames = ['CMakeLists.txt'];
+        
+        if (!supportedExtensions.includes(fileExt) && !supportedFileNames.includes(fileName)) {
             uiManager.showError('Unsupported file type: ' + fileExt);
             return;
         }
@@ -87,17 +89,31 @@ async function submitJob(uri) {
 
         const inputFiles = await uiManager.showInputFilesDialog();
 
-        let compilerConfig = null;
+        let executionConfig = null;
+        
+        // C/C++ files
         if (fileExt === '.c' || fileExt === '.cpp') {
-            compilerConfig = await uiManager.showCompilerFlagsDialog(configManager);
-            if (compilerConfig === null) return;
+            executionConfig = await uiManager.showCompileExecuteDialog(fileName);
+            if (executionConfig === null) return;
+        }
+        
+        // CUDA files
+        if (fileExt === '.cu') {
+            executionConfig = await uiManager.showCudaCompileExecuteDialog(fileName);
+            if (executionConfig === null) return;
+        }
+        
+        // CMake projects
+        if (fileName === 'CMakeLists.txt') {
+            executionConfig = await uiManager.showCMakeCommandsDialog();
+            if (executionConfig === null) return;
         }
 
         const jobConfig = await uiManager.showSchedulingDialog(configManager, fileExt);
         if (!jobConfig) return;
 
-        if (compilerConfig) {
-            Object.assign(jobConfig, compilerConfig);
+        if (executionConfig) {
+            Object.assign(jobConfig, executionConfig);
         }
 
         logger.info('Job configuration prepared');

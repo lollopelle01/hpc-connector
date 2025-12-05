@@ -3,31 +3,31 @@ const path = require('path');
 const { getInstance: getLogger } = require('../logger');
 
 /**
- * Executor for C/C++ files (.c and .cpp)
+ * Executor for CUDA files (.cu)
  * 
  * Handles:
- * - C programs (.c): Compiled with gcc
- * - C++ programs (.cpp): Compiled with g++
+ * - CUDA programs (.cu): Compiled with nvcc
  * 
  * Features:
  * - Manual compilation command definition
  * - Manual execution command definition
- * - Default templates for common use cases
+ * - CUDA module loading
+ * - GPU-aware execution
  */
-class CppExecutor extends BaseExecutor {
+class CudaExecutor extends BaseExecutor {
     constructor(jobConfig, clusterInfo) {
         super(jobConfig, clusterInfo);
         this.logger = getLogger();
     }
 
     getFileType() {
-        return 'cpp';
+        return 'cuda';
     }
 
     getUIConfig() {
         return {
             showPythonEnv: false,
-            showCompilerFlags: true,
+            showCompilerFlags: false,
             showCompileCommand: true,
             showExecuteCommand: true,
         };
@@ -42,21 +42,25 @@ class CppExecutor extends BaseExecutor {
     }
 
     _getDefaultCompileCommand(fileName) {
-        const fileExt = path.extname(fileName);
-        const executable = fileName.replace(/\.[^.]+$/, '.out');
-        const compiler = fileExt === '.c' ? 'gcc' : 'g++';
-        
-        return `${compiler} ${fileName} -o ${executable} -O3 -march=native -Wall`;
+        const executable = fileName.replace(/\.cu$/, '.out');
+        return `nvcc ${fileName} -o ${executable} -O3 -arch=sm_75`;
     }
 
     _getDefaultExecuteCommand(fileName) {
-        const executable = fileName.replace(/\.[^.]+$/, '.out');
+        const executable = fileName.replace(/\.cu$/, '.out');
         return `./${executable}`;
     }
 
     getEnvironmentSetup() {
-        // C/C++ doesn't need Python environment
-        return '# No Python environment needed for C/C++';
+        // CUDA needs the CUDA module loaded
+        const lines = [];
+        lines.push('# Load CUDA module');
+        lines.push('module load cuda');
+        lines.push('echo "CUDA Version: $(nvcc --version | grep release)"');
+        lines.push('echo "GPU Info:"');
+        lines.push('nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader');
+        
+        return lines.join('\n');
     }
 
     async extractConfig(uiConfig) {
@@ -67,24 +71,29 @@ class CppExecutor extends BaseExecutor {
     }
 
     validate() {
-        // Basic validation: ensure commands are not empty if custom
+        // Validation: ensure commands are not empty if custom
         if (this.jobConfig.compileCommand === '') {
             throw new Error('Compilation command cannot be empty');
         }
         if (this.jobConfig.executeCommand === '') {
             throw new Error('Execution command cannot be empty');
         }
-        this.logger.debug('C/C++ executor validated');
+        
+        // CUDA requires GPU
+        if (this.jobConfig.gpus <= 0) {
+            throw new Error('CUDA execution requires at least 1 GPU');
+        }
+        
+        this.logger.debug('CUDA executor validated');
     }
 
     /**
-     * Get additional SLURM directives for C/C++
-     * GPU resources are not requested for pure C/C++ compilation/execution
+     * Get additional SLURM directives for CUDA
+     * GPU is mandatory for CUDA
      */
     getAdditionalSlurmDirectives() {
-        // C/C++ typically doesn't need GPU
-        return '# C/C++ execution: no GPU requested';
+        return '# CUDA execution: GPU required';
     }
 }
 
-module.exports = CppExecutor;
+module.exports = CudaExecutor;

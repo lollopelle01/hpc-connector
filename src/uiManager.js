@@ -6,45 +6,112 @@ const vscode = require('vscode');
 class UIManager {
     
     /**
-     * Show compiler flags dialog for C/C++ files
-     * Allows customization of compilation flags
+     * Show compilation and execution commands dialog for C/C++ files
      */
-    async showCompilerFlagsDialog(configManager) {
-        // Optimization level
-        const optimizationLevel = await vscode.window.showQuickPick(
-            [
-                { label: '-O0', description: 'No optimization (debug)' },
-                { label: '-O1', description: 'Basic optimization' },
-                { label: '-O2', description: 'Good optimization' },
-                { label: '-O3', description: 'Aggressive optimization (default)', picked: true },
-            ],
-            {
-                placeHolder: 'Select optimization level',
-                canPickMany: false,
-            }
-        );
-        if (!optimizationLevel) return null;
+    async showCompileExecuteDialog(fileName) {
+        const fileExt = require('path').extname(fileName);
+        const executable = fileName.replace(/\.[^.]+$/, '.out');
+        const compiler = fileExt === '.c' ? 'gcc' : 'g++';
+        
+        const defaultCompileCmd = `${compiler} ${fileName} -o ${executable} -O3 -march=native -Wall`;
+        const defaultExecuteCmd = `./${executable}`;
 
-        // Extra compiler flags
-        const extraFlags = await vscode.window.showInputBox({
-            prompt: 'Additional compiler flags (optional)',
-            placeHolder: '-Wall -Wextra -std=c17',
-            value: '-Wall',
+        // Compilation command
+        const compileCommand = await vscode.window.showInputBox({
+            prompt: 'Compilation command',
+            placeHolder: defaultCompileCmd,
+            value: defaultCompileCmd,
+            prompt: 'Enter the compilation command (or press Enter for default)',
         });
-        if (extraFlags === undefined) return null;
+        if (compileCommand === undefined) return null;
 
-        // Include directories
-        const includeFlags = await vscode.window.showInputBox({
-            prompt: 'Include directories (optional)',
-            placeHolder: '-I/path/to/headers',
-            value: '',
+        // Execution command
+        const executeCommand = await vscode.window.showInputBox({
+            prompt: 'Execution command',
+            placeHolder: defaultExecuteCmd,
+            value: defaultExecuteCmd,
+            prompt: 'Enter the execution command (or press Enter for default)',
         });
-        if (includeFlags === undefined) return null;
+        if (executeCommand === undefined) return null;
 
         return {
-            optimizationLevel: optimizationLevel.label,
-            extraFlags: extraFlags,
-            includeFlags: includeFlags,
+            compileCommand: compileCommand,
+            executeCommand: executeCommand,
+        };
+    }
+
+    /**
+     * Show compilation and execution commands dialog for CUDA files
+     */
+    async showCudaCompileExecuteDialog(fileName) {
+        const executable = fileName.replace(/\.cu$/, '.out');
+        
+        const defaultCompileCmd = `nvcc ${fileName} -o ${executable} -O3 -arch=sm_75`;
+        const defaultExecuteCmd = `./${executable}`;
+
+        // Compilation command
+        const compileCommand = await vscode.window.showInputBox({
+            prompt: 'CUDA compilation command',
+            placeHolder: defaultCompileCmd,
+            value: defaultCompileCmd,
+            prompt: 'Enter the nvcc compilation command (or press Enter for default)',
+        });
+        if (compileCommand === undefined) return null;
+
+        // Execution command
+        const executeCommand = await vscode.window.showInputBox({
+            prompt: 'Execution command',
+            placeHolder: defaultExecuteCmd,
+            value: defaultExecuteCmd,
+            prompt: 'Enter the execution command (or press Enter for default)',
+        });
+        if (executeCommand === undefined) return null;
+
+        return {
+            compileCommand: compileCommand,
+            executeCommand: executeCommand,
+        };
+    }
+
+    /**
+     * Show CMake commands dialog
+     */
+    async showCMakeCommandsDialog() {
+        const defaultConfigureCmd = 'cmake -S . -B build -DCMAKE_BUILD_TYPE=Release';
+        const defaultBuildCmd = 'cmake --build build -j $SLURM_CPUS_PER_TASK';
+        const defaultExecuteCmd = './build/main';
+
+        // Configure command
+        const cmakeConfigureCommand = await vscode.window.showInputBox({
+            prompt: 'CMake configure command',
+            placeHolder: defaultConfigureCmd,
+            value: defaultConfigureCmd,
+            prompt: 'Enter the CMake configuration command (or press Enter for default)',
+        });
+        if (cmakeConfigureCommand === undefined) return null;
+
+        // Build command
+        const cmakeBuildCommand = await vscode.window.showInputBox({
+            prompt: 'CMake build command',
+            placeHolder: defaultBuildCmd,
+            value: defaultBuildCmd,
+            prompt: 'Enter the CMake build command (or press Enter for default)',
+        });
+        if (cmakeBuildCommand === undefined) return null;
+
+        // Execution command
+        const executeCommand = await vscode.window.showInputBox({
+            prompt: 'Execution command',
+            placeHolder: defaultExecuteCmd,
+            value: defaultExecuteCmd,
+            prompt: 'Enter the execution command (or press Enter for default)',
+        });
+        if (executeCommand === undefined) return null;
+
+        return {
+            cmakeConfigureCommand: cmakeConfigureCommand,
+            cmakeBuildCommand: cmakeBuildCommand,
+            executeCommand: executeCommand,
         };
     }
 
@@ -144,13 +211,14 @@ class UIManager {
 
     /**
      * Show input files selection dialog
-     * Allows user to select additional input files to upload with the job
+     * Allows user to select additional files to upload to job workspace
+     * These files will be available in the remote job directory
      */
     async showInputFilesDialog() {
         const selection = await vscode.window.showQuickPick(
-            ['Yes - Select input files', 'No - Submit without additional files'],
+            ['Yes - Select files to upload to job workspace', 'No - Submit without additional files'],
             {
-                placeHolder: 'Does this job need additional input files?',
+                placeHolder: 'Do you need to upload additional files to the job workspace?',
                 canPickMany: false,
             }
         );
@@ -164,11 +232,13 @@ class UIManager {
             canSelectMany: true,
             canSelectFiles: true,
             canSelectFolders: false,
-            openLabel: 'Select Input Files',
+            openLabel: 'Select Files to Upload',
+            title: 'Select files to copy to remote job workspace',
             filters: {
                 'All Files': ['*'],
                 'Data Files': ['csv', 'json', 'txt', 'xml', 'yaml', 'yml'],
                 'Config Files': ['cfg', 'conf', 'ini', 'toml'],
+                'Source Files': ['c', 'cpp', 'cu', 'h', 'hpp', 'cuh'],
             }
         });
 

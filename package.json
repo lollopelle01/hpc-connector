@@ -2,7 +2,12 @@
   "name": "hpc-connector",
   "displayName": "HPC Connector",
   "description": "Execute files on HPC cluster via SSH",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "publisher": "pellegrino",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/hpc-connector"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -34,14 +39,14 @@
       "editor/context": [
         {
           "command": "hpc-connector.submitJob",
-          "when": "resourceExtname == .py || resourceExtname == .ipynb || resourceExtname == .c || resourceExtname == .cpp",
+          "when": "resourceExtname == .py || resourceExtname == .ipynb || resourceExtname == .c || resourceExtname == .cpp || resourceExtname == .cu || resourceFilename == CMakeLists.txt",
           "group": "hpc@1"
         }
       ],
       "explorer/context": [
         {
           "command": "hpc-connector.submitJob",
-          "when": "resourceExtname == .py || resourceExtname == .ipynb || resourceExtname == .c || resourceExtname == .cpp",
+          "when": "resourceExtname == .py || resourceExtname == .ipynb || resourceExtname == .c || resourceExtname == .cpp || resourceExtname == .cu || resourceFilename == CMakeLists.txt",
           "group": "hpc@1"
         }
       ]

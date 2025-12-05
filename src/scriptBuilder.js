@@ -135,7 +135,7 @@ class ScriptBuilder {
         
         const lines = [];
         lines.push('# Capture metadata');
-        lines.push(`OUTPUT_FILES=$(ls -1 ${jobDir} | grep -v "job.sbatch\\|slurm-\\|status.json\\|execution_\\|${fileName}" || echo "")`);
+        lines.push(`OUTPUT_FILES=$(ls -1 ${jobDir} 2>/dev/null | grep -v -e "job.sbatch" -e "slurm-" -e "status.json" -e "execution_" -e "${fileName}" $(for f in ${(jobConfig.inputFiles || []).map(f => path.basename(f)).join(' ')}; do echo "-e \\"$f\\""; done) || echo "")`);
         lines.push('');
         lines.push('if [ $EXIT_CODE -eq 0 ]; then');
         lines.push('    JOB_STATUS="COMPLETED"');
@@ -154,12 +154,20 @@ class ScriptBuilder {
         lines.push('    END_ISO=$(date -u -r $END_TIME +"%Y-%m-%dT%H:%M:%S+00:00")');
         lines.push('fi');
         lines.push('');
-        lines.push('# Format output files as JSON');
-        lines.push('if [ -n "$OUTPUT_FILES" ]; then');
-        lines.push('    OUTPUT_JSON=$(echo "$OUTPUT_FILES" | jq -R . | jq -s .)');
-        lines.push('else');
-        lines.push('    OUTPUT_JSON="[]"');
-        lines.push('fi');
+        lines.push('# Format output files as JSON array (without jq)');
+        lines.push('OUTPUT_JSON="["');
+        lines.push('FIRST=true');
+        lines.push('while IFS= read -r file; do');
+        lines.push('    if [ -n "$file" ]; then');
+        lines.push('        if [ "$FIRST" = true ]; then');
+        lines.push('            OUTPUT_JSON="${OUTPUT_JSON}\\"${file}\\""');
+        lines.push('            FIRST=false');
+        lines.push('        else');
+        lines.push('            OUTPUT_JSON="${OUTPUT_JSON}, \\"${file}\\""');
+        lines.push('        fi');
+        lines.push('    fi');
+        lines.push('done <<< "$OUTPUT_FILES"');
+        lines.push('OUTPUT_JSON="${OUTPUT_JSON}]"');
         lines.push('');
         lines.push('# Write status.json');
         lines.push(`cat > ${jobDir}/status.json << EOFSTATUS`);
