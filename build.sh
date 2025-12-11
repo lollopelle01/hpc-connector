@@ -34,7 +34,7 @@ rm -f *.vsix
 # 4. Build the new extension
 echo ""
 echo "Building extension..."
-npx @vscode/vsce package --no-dependencies
+npx @vscode/vsce package
 
 if [ $? -ne 0 ]; then
     echo "Error during build"

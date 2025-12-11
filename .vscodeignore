@@ -8,8 +8,9 @@ vsc-extension-quickstart.md
 **/*.map
 **/.eslintrc.json
 *.vsix
-node_modules/**
 .git/**
 .github/**
 build.sh
 *.log
+.DS_Store
+src/.DS_Store
